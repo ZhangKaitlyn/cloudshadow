@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+	<title>登录</title>
+    <link rel="stylesheet" href="../css/aui.css">
+    <link rel="stylesheet" href="../css/base.css">
+	<link rel="stylesheet" href="../css/login.css">
+</head>
+<body class="whiteBg">
+<!-- 头像 -->
+<div class="profile">
+	<img src="../image/profile.jpg" alt="个人头像">
+</div>
+<!-- 登录注册框 -->
+<div class="aui-content">
+    <div class="aui-form">
+        <div class="aui-input-row">
+            <i class="aui-input-addon  aui-iconfont aui-icon-people"></i>
+            <input id="name-login" type="text" class="aui-input" placeholder=" 请输入用户名"/>
+        </div>
+        <div class="aui-input-row">
+            <i class="aui-input-addon  aui-iconfont aui-icon-lock"></i>
+            <input id="password-login" type="password" class="aui-input" placeholder=" 请输入密码"/>
+        </div>
+    </div>
+</div>
+<!-- 登录按钮 -->
+<div id="loginBtn" class="aui-btn aui-btn-success aui-btn-block addMargin">登录</div>
+<a class="aui-text-success" onclick="openWin('register')" title="跳转到注册页">注册账号</a>
+
+<script src="../script/jquery-2.1.4.min.js"></script>
+<!-- 登录功能 -->
+<script>
+    // 登录
+    $("#loginBtn").click(function(event) {
+        /* Act on the event */
+        var name=$("#name-login").val();
+        var psd=$("#password-login").val();
+        if(name==""||psd==""){
+        	alert("用户名及密码不能为空");
+        }
+        else{
+	        $.ajax({
+	            type:"POST",
+	            url:"http://cloudshadow.zhangguolu.xin/user/login.php",
+	            data:{name:name,password:psd},
+	            //返回数据的格式
+	            datatype: "json",
+	            //成功返回之后调用的函数             
+	            success:function(data){
+//	          console.log(data);
+	                var data = eval("("+data+")");//转换为json对象 
+	                if (data.status=="1") {
+	                	localStorage.clear();
+	                	//登录成功后将用户信息存储在本地
+	                	localStorage.setItem("logined","true");
+	                    localStorage.setItem("userName",data.userinfo.name);
+	                    localStorage.setItem("userId",data.userinfo.id);
+	                    localStorage.setItem("userProfile",data.userinfo.icon);
+	                    api.sendEvent({ name: "logined" });//登录成功事件
+//	                    openWin('../index');
+						api.closeWin();
+	                }  
+	                else{
+	                    alert("登录失败，请检查用户名或密码是否有误");
+	                }       
+	            }
+	         });
+	         //over
+        }
+    }); 
+</script>
+<!-- 打开窗口 -->
+<script>
+	apiready=function(){
+		api.addEventListener({
+		    name: 'keyback'
+		}, function(ret, err){
+		    if( ret ){
+		         console.log( JSON.stringify( ret ) );
+		         api.closeWin();
+		         api.sendEvent({ name: "unLogin" });
+		    }else{
+		         alert( JSON.stringify( err ) );
+		    }
+		});
+	}
+        function openWin(name){
+            var delay = 0;
+            if(api.systemType != 'ios'){
+                delay = 0;
+            }
+            api.openWin({
+                name: ''+name+'',
+                url: ''+name+'.html',
+                bounces:false,
+                delay: delay,
+                slidBackEnabled:true,
+                vScrollBarEnabled:false
+            });
+        }
+    </script>
+</body>
+</html>

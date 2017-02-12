@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+		<title>详情</title>
+		<link rel="stylesheet" href="../css/aui.css">
+		<link rel="stylesheet" href="../css/base.css">
+		<link rel="stylesheet" href="../css/main.css">
+	</head>
+	<body>
+		<!-- 顶部导航 -->
+		<header id="header" class="aui-bar aui-bar-nav aui-bar-success">
+			<a onclick="closeWin()" class="aui-pull-left"> <span class="aui-iconfont aui-icon-left"></span>返回 </a>
+			<div class="aui-title">
+				详情
+			</div>
+		</header>
+		<div id="showDetail" class="userZone aui-content addMargin whiteBg" style="margin-top: 150px;">
+			<!-- <header class="clearfix aui-padded-10">
+				<div class="profileContainer">
+					<img src="../image/profile.jpg" alt="用户头像">
+				</div>
+				<div class="userMsg">
+					<p>
+						愤怒的小鸟
+					</p>
+					<time datetime="2011-01-12">
+						2015年7月8日
+					</time>
+				</div>
+			</header>/header
+			<div class="textcontainer">
+				<p>
+					是口服毫克韩国irh是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国是口服毫克韩国jjjccc
+				</p>
+			</div>
+			<div id="imgContainer" class="imgContainer">
+				<img src="../image/profile.jpg" alt="用户图片">
+			</div> -->
+		</div>
+		<!-- 用户评论区 -->
+		<div id="showComment" class="whiteBg bottomMargin aui-padded-10">
+			<h4>暂无评论</h4>
+			<!--<div class="aui-content commentZone ">
+			<header class="clearfix">
+			<div class="profileContainer">
+			<img src="../image/profile.jpg" alt="用户头像">
+			</div>
+			<div class="userMsg">
+			<p>扣扣号</p>
+			<time datetime="2011-01-12">2039年2月38日</time>
+			</div>
+			</header>
+			<div class="textcontainer aui-padded-10">
+			<p>
+			是代理进口的结果高考改革和是代理进口的结果高考改革和是代理进口的结果高考改革和是代理进口的结果高考改革和是代理进口的结果高考改革和是代理进口的结果高考改革和
+			</p>
+			</div>
+			</div>-->
+		</div>
+		<!-- 点赞和评论按钮 -->
+		<div class="content fixedBottom clearfix btnGroup">
+			<div id="clickBtn" class="aui-col-xs-6 aui-btn aui-btn-success">
+				<span class="aui-iconfont aui-icon-like"></span><span id="clickNum"></span>
+			</div>
+			<div id="commentBtn" class="aui-col-xs-6 aui-btn aui-btn-success aui-btn-outlined">
+				<span class="aui-iconfont aui-icon-comment"></span><span id="commentNum"></span>
+			</div>
+		</div>
+		<!-- 遮罩层 -->
+		<div class="mask" id="mask"></div>
+		<!-- 评论弹框 -->
+		<div class="aui-dialog" id="commentBox">
+			<div class="aui-dialog-header">
+				评论
+			</div>
+			<div class="aui-dialog-body aui-text-left">
+				<textarea name="comment" id="comment" cols="30" rows="3" placeholder="评论内容"></textarea>
+			</div>
+			<div class="aui-dialog-footer">
+				<div class="aui-dialog-btn aui-text-danger" tapmode onclick="cancel(this)">
+					取消
+				</div>
+				<div id="postComment" class="aui-dialog-btn aui-text-info" tapmode>
+					确认
+				</div>
+			</div>
+		</div>
+		<script src="../script/jquery-2.1.4.min.js"></script>
+		<script src="../script/api.js"></script>
+		<script src="../script/artTemplate.js"></script>
+		<!--详情-->
+		<script id="showDetailTpl" type="text/html">
+			<header class="clearfix aui-padded-10">
+			<div class="profileContainer">
+			<img src="{{uimg}}" alt="用户头像">
+			</div>
+			<div class="userMsg">
+			<h4>{{uname}}</h4>
+			<time datetime="2011-01-12">{{ptime}}</time>
+			</div>
+			</header><!-- /header -->
+			<div class="textcontainer">
+			<p>{{ptext}}</p>
+			</div>
+			<div id="imgContainer" class="imgContainer">
+			<img src="{{purl}}" alt="用户图片">
+			</div>
+		</script>
+		<!--显示评论-->
+		<script id="showCommentTpl" type="text/html">
+			{{each data as value i}}
+			<div class="aui-content commentZone aui-padded-10">
+			<header class="clearfix">
+			<div class="profileContainer">
+			<img src="{{value.uimg}}" alt="用户头像">
+			</div>
+			<div class="userMsg">
+			<p>{{value.uname}}</p>
+			<time datetime="2011-01-12">{{value.comtime}}</time>
+			</div>
+			</header>
+			<div class="textcontainer">
+			<p>
+			{{value.comtext}}
+			</p>
+			</div>
+			</div>
+			{{/each}}
+		</script>
+	</body>
+	<script src="../script/dialog.js"></script>
+	<!--弹框-->
+	<script type="text/javascript">
+		//	    	评论按钮点击
+		document.getElementById("commentBtn").onclick = function(argument) {
+			var isLogin = localStorage.getItem("logined");
+			if (isLogin == null) {
+				api.confirm({
+					title : '登录？',
+					msg : '登录之后才能评论',
+					buttons : ['我要登录', '拒绝登录']
+				}, function(ret, err) {
+					if (ret.buttonIndex == 1) {
+						api.openWin({
+							name : 'login',
+							url : 'login.html',
+							slidBackEnabled : false,
+							reload : true,
+							bounces : 'false'
+						})
+					} else {
+						console.log("拒绝登录");
+					}
+				});
+			} else {
+				show(commentBox);
+			}
+		}
+		//	    	赞按钮点击
+		document.getElementById("clickBtn").onclick = function(argument) {
+			var isLogin1 = localStorage.getItem("logined");
+			if (isLogin1 == null) {
+				api.confirm({
+					title : '登录？',
+					msg : '登录之后才能点赞',
+					buttons : ['我要登录', '拒绝登录']
+				}, function(ret, err) {
+					if (ret.buttonIndex == 1) {
+						api.openWin({
+							name : 'login',
+							url : 'login.html',
+							slidBackEnabled : false,
+							reload : true,
+							bounces : 'false'
+						})
+					} else {
+						console.log("拒绝登录");
+					}
+				});
+			} else {
+				var userId = localStorage.getItem("userId");
+				var pid = api.pageParam.pid;
+				api.ajax({
+					url : 'http://cloudshadow.zhangguolu.xin/comment/click.php',
+					method : 'post',
+					data : {
+						values : {
+							uid : userId,
+							pid : pid
+						}
+					}
+				}, function(ret, err) {
+					if (ret) {
+						var clickZone = document.getElementById('clickNum');
+//						console.log(ret);
+						if (ret.status == "1") {
+							alert(ret.message);
+							var clickNum = clickZone.innerHTML;
+							clickNum = Number(clickNum);
+							clickNum++;
+							clickZone.innerHTML = clickNum;
+						} else {
+							alert(ret.message);
+						}
+					} else {
+						api.alert({
+							msg : JSON.stringify(err)
+						});
+					}
+				});
+			}
+		}
+	</script>
+	<script>
+		//评论功能
+		var userId = localStorage.getItem("userId");
+		var postComment = document.getElementById('postComment');
+		var commentBox = document.getElementById('commentBox');
+		var mask = document.getElementById('mask');
+		//			console.log(postComment);
+		postComment.onclick = function() {
+			var pid = localStorage.getItem("pid");
+			var comText = document.getElementById('comment').value;
+			console.log(pid + ":" + comText);
+			if (comText == "") {
+				alert("请输入评论内容！");
+			} else {
+				$.ajax({
+					type : "POST",
+					url : "http://cloudshadow.zhangguolu.xin/comment/comment.php",
+					data : {
+						pid : pid,
+						uid : userId,
+						text : comText
+					},
+					//返回数据的格式
+					datatype : "json",
+					//成功返回之后调用的函数
+					success : function(data) {
+						//							console.log(data.status);//undefined
+						data = eval('(' + data + ')');
+						//							console.log(data.status);
+						console.log(pid + ":" + userId + ":" + comText);
+						console.log(data.status);
+						if (data.status == "1") {
+							alert("成功" + data.message);
+							refresh();
+							commentBox.style.display = "none";
+							mask.style.display = "none";
+						} else {
+							alert("失败" + data.message);
+						}
+					}
+				});
+			}
+		}
+		function refresh() {
+			api.execScript({
+				name : 'talkDetail',
+				script : 'showComment();'
+			});
+		}
+
+		function showComment() {
+			var data = api.pageParam;
+			//从frame0传来的参数
+			//				console.log(data);
+			var detail = template("showDetailTpl", data);
+			document.getElementById('showDetail').innerHTML = detail;
+			var pid = api.pageParam.pid;
+			//				获取赞的数量
+			$.ajax({
+				type : "GET",
+				url : "http://cloudshadow.zhangguolu.xin/show/showclicknum.php?pid=" + pid,
+				//返回数据的格式
+				datatype : "json",
+				//成功返回之后调用的函数
+				success : function(data) {
+//					console.log(data);
+					var data = eval("(" + data + ")");//转换为json对象
+//					console.log(data);
+				}
+			});
+			$.ajax({
+				type : "GET",
+				url : "http://cloudshadow.zhangguolu.xin/show/showcomment.php?pid=" + pid,
+				//返回数据的格式
+				datatype : "json",
+				//成功返回之后调用的函数
+				success : function(data) {
+					//					console.log(data);
+					var data = eval("(" + data + ")");
+					console.log(data);
+					//转换为json对象
+					//					console.log(data);
+					var length = data.data.length;
+					//评论的数量
+					document.getElementById('commentNum').innerHTML = length;
+					//					console.log(length);
+					if (length > 0) {
+						var comment = template("showCommentTpl", data);
+						document.getElementById('showComment').innerHTML = comment;
+					}
+				}
+			});
+		}
+	</script>
+	<script>
+		apiready = function() {
+			photoBrowser = api.require('photoBrowser');
+			browerImgs = [];
+			var data = api.pageParam;
+			//			console.log(data);
+			browerImgs.push(data.purl);
+			//			openImageBrowser(browerImgs);
+			//从frame0传来的参数
+			//			console.log(data);
+			var detail = template("showDetailTpl", data);
+			document.getElementById('showDetail').innerHTML = detail;
+			document.getElementById('imgContainer').onclick = function(event) {
+				console.log(event);
+				openImageBrowser(browerImgs);
+			}
+			var pid = api.pageParam.pid;
+			localStorage.setItem("pid", pid);
+			//			console.log(pid);
+			//	获取评论
+			$.ajax({
+				type : "GET",
+				url : "http://cloudshadow.zhangguolu.xin/show/showcomment.php?pid=" + pid,
+				//返回数据的格式
+				datatype : "json",
+				//成功返回之后调用的函数
+				success : function(data) {
+					//					console.log(data);
+					var data = eval("(" + data + ")");
+					//转换为json对象
+					//					console.log(data);
+					var length = data.data.length;
+					//评论的数量
+					document.getElementById('commentNum').innerHTML = length;
+					//					console.log(length);
+					if (length > 0) {
+						var comment = template("showCommentTpl", data);
+						document.getElementById('showComment').innerHTML = comment;
+					}
+				}
+			});
+			//				赞的数量
+			$.ajax({
+				type : "GET",
+				url : "http://cloudshadow.zhangguolu.xin/show/showclicknum.php?pid=" + pid,
+				//返回数据的格式
+				datatype : "json",
+				//成功返回之后调用的函数
+				success : function(data) {
+					var data = eval("(" + data + ")");
+					//转换为json对象
+					document.getElementById('clickNum').innerHTML = data.num;
+				}
+			});
+		}
+		// 打开图片浏览
+		// imgs：需要预览的图片集合
+		function openImageBrowser(imgs) {
+			photoBrowser.open({
+				images : imgs,
+				showList : false,
+				activeIndex : 0,
+				bgColor : '#000'
+			}, function(ret, err) {
+				if (ret) {
+					console.log(ret.eventType);
+					if (ret.eventType == "click") {
+						photoBrowser.close();
+					}
+				} else {
+					alert(JSON.stringify(err));
+				}
+			});
+		}
+	</script>
+	<script type="text/javascript">
+		function closeWin() {
+			api.closeWin();
+		}
+	</script>
+</html>

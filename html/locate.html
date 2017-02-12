@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0">
+		<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+		<title>选择城市</title>
+		<link rel="stylesheet" type="text/css" href="../css/aui.css">
+		<link rel="stylesheet" type="text/css" href="../css/aui-indexed-list.css">
+		<link rel="stylesheet" href="../css/base.css">
+		<link rel="stylesheet" href="../css/locate.css">
+	</head>
+	<body>
+		<!-- 顶部导航 -->
+		<header id="header" class="aui-bar aui-bar-nav aui-bar-success">
+			<a onclick="closeWin()" class="aui-btn aui-text-danger aui-btn-success aui-pull-left active">取消 </a>
+			<div class="aui-title">
+				选择城市
+			</div>
+		</header>
+		<script src="../scripts/jquery-2.1.4.min.js"></script>
+		<script type="text/javascript" src="../script/api.js"></script>
+		<script type="text/javascript" src="../script/aui-tap.js"></script>
+		<script type="text/javascript">
+			apiready = function() {
+				//获取当前位置
+				bMap = api.require('bMap');
+				UICityList = api.require('UICityList');
+				// 获取当前位置
+				var currentCity;
+				
+				bMap.getLocation({
+					accuracy : '10m',
+					autoStop : true,
+					filter : 1
+				}, function(ret, err) {
+				    
+				    console.log(JSON.stringify(ret+":::::::::"+err));
+				    
+					if (ret.status) {
+						bMap.getNameFromCoords({
+							lon : ret.lon,
+							lat : ret.lat
+						}, function(ret, err) {
+							console.log(JSON.stringify(ret+":"+err));
+							if (ret.status) {
+								currentCity = ret.city;
+								//获取城市列表
+								UICityList.open({
+									rect : {
+										x : 0,
+										y : 70,
+										w : api.frameWidth,
+										h : api.frameHeight
+									},
+									resource : 'widget://res/UICityList.json',
+									styles : {
+										searchBar : {
+											bgColor : '#696969',
+											cancelColor : '#E3E3E3'
+										},
+										location : {
+											color : '#696969',
+											size : 12
+										},
+										sectionTitle : {
+											bgColor : '#eee',
+											color : '#000',
+											size : 12
+										},
+										item : {
+											bgColor : '#fff',
+											activeBgColor : '#696969',
+											color : '#575757',
+											size : 14,
+											height : 40
+										},
+										indicator : {
+											bgColor : '#fff',
+											color : '#696969'
+										}
+									},
+									locationWay : 'GPS',
+									currentCity : currentCity,
+									hotTitle : '热门城市',
+									fixedOn : api.frameName,
+									placeholder : '输入城市名或首字母查询'
+								}, function(ret, err) {
+									if (ret) {
+										if (ret.eventType == "selected") {
+											console.log(ret.cityInfo.city);
+										}
+										console.log(JSON.stringify(ret));
+									} else {
+										alert(JSON.stringify(err));
+									}
+								});
+							}
+						});
+					} else {
+						api.alert({
+							msg : JSON.stringify(err) + JSON.stringify(ret)
+						});
+					}
+				});
+				//			获取城市列表
+			}
+		</script>
+		<script type="text/javascript">
+			function closeWin() {
+				api.closeWin();
+			}
+		</script>
+	</body>
+</html>

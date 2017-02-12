@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<title>我的个人中心</title>
+		<link rel="stylesheet" href="../css/aui.css">
+		<link rel="stylesheet" href="../css/base.css">
+		<link rel="stylesheet" href="../css/login.css">
+		<link rel="stylesheet" href="../css/mine.css">
+	</head>
+	<body class="whiteBg">
+		<div class="aui-content profile">
+			<img id="showProfile" src="../image/profile.jpg" alt="用户头像">
+		</div>
+		<p id="showName" class="userName">
+			<br />
+			<span onclick="openWin('login')">请登录</span>
+		</p>
+		<div class="aui-content">
+			<ul class="aui-list-view">
+				<li onclick="openWin('myShare')" class="aui-list-view-cell">
+					<a class="aui-arrow-right">我的分享</a>
+				</li>
+				<li onclick="openWin('countManage')" class="aui-list-view-cell">
+					<a class="aui-arrow-right">账号管理</a>
+				</li>
+				<li class="aui-list-view-cell">
+					<div class="aui-arrow-right">
+						关于云影
+					</div>
+				</li>
+			</ul>
+		</div>
+		<div id="exitBtn" class="aui-btn aui-btn-success aui-btn-block">
+			退出当前账号
+		</div>
+	</body>
+	<script src="../script/jquery-2.1.4.min.js"></script>
+	<script>
+		apiready = function() {
+			api.addEventListener({
+				name : "profileManage"
+			}, function(ret, err) {
+				var userProfile = localStorage.getItem("userProfile");
+				$("#showProfile").attr("src", userProfile);
+			})
+			api.addEventListener({
+				name : "logined"
+			}, function(ret, err) {
+				var userName = localStorage.getItem("userName");
+				var userProfile = localStorage.getItem("userProfile");
+				$("#showProfile").attr("src", userProfile);
+				$("#showName").html(userName);
+			})
+			api.addEventListener({
+				name : "unLogin"
+			}, function(ret, err) {
+				$("#showProfile").attr("src", "../image/profile.jpg");
+				$("#showName").html("请登录");
+				$("#showName").click(function(){
+					openWin("login");
+				});
+			})
+			api.addEventListener({
+				name : "nameChanged"
+			}, function(ret, err) {
+				var userName = localStorage.getItem("userName");
+				$("#showName").html(userName);
+			})
+		}
+		var isLogin = localStorage.getItem("logined");
+		if (isLogin == null) {
+			$("#showName").html("请登录");
+			$("#showName").click(function(){
+				openWin("login");
+			});
+			
+		} else {
+			var userName = localStorage.getItem("userName");
+			var userProfile = localStorage.getItem("userProfile");
+			if (userName == "") {
+				$("#showName").html("请登录");
+				$("#showName").click(function(){
+					openWin("login");
+				});
+			} else {
+				$("#showProfile").attr("src", userProfile);
+				$("#showName").html(userName);
+			}
+		}
+		// 退出当前账号
+		$("#exitBtn").click(function() {
+			localStorage.clear();
+			openWin("login");
+		})
+	</script>
+	<script>
+		function openWin(name) {
+			var delay = 0;
+			if (api.systemType != 'ios') {
+				delay = 0;
+			}
+			var isLogin = localStorage.getItem("logined");
+			if (isLogin == null) {
+				api.openWin({
+					name : 'login',
+					url : 'login.html',
+					slidBackEnabled : false,
+					reload : true,
+					bounces:'false'
+				})
+			} else {
+				api.openWin({
+					name : name,
+					url : '' + name + '.html',
+					bounces : false,
+					delay : delay,
+					slidBackEnabled : true,
+					reload : true,
+					vScrollBarEnabled : false
+				});
+			}
+			
+		}
+
+		function showProfile() {
+			console.log("gengxin");
+			var userProfile = localStorage.getItem("userProfile");
+			$("#userProfile").attr("src", userProfile);
+		}
+	</script>
+</html>

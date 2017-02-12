@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+	<title>注册</title>
+    <link rel="stylesheet" href="../css/aui.css">
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/login.css">
+</head>
+<body class="whiteBg">
+    <header id="header" class="aui-bar aui-bar-nav aui-bar-success">
+        <a class="aui-pull-left" href="login.html">
+            <span class="aui-iconfont aui-icon-left"></span>返回
+        </a>
+    </header>
+    <!-- 头像 -->
+    <div class="profile">
+     <img src="../image/profile.jpg" alt="个人头像">
+ </div>
+ <!-- 登录注册框 -->
+ <div class="aui-content">
+    <div class="aui-form">
+        <div class="aui-input-row">
+            <i class="aui-input-addon  aui-iconfont aui-icon-people"></i>
+            <input id="userName" type="text" class="aui-input" placeholder="请输入用户名"/>
+        </div>
+        <div class="aui-input-row">
+            <i class="aui-input-addon  aui-iconfont aui-icon-people"></i>
+            <input id="Email" type="email" class="aui-input" placeholder="请输入邮箱"/>
+        </div>
+        <div class="aui-input-row">
+            <i class="aui-input-addon  aui-iconfont aui-icon-lock"></i>
+            <input id="psd" type="password" class="aui-input" placeholder="请输入密码"/>
+        </div>
+        <div class="aui-input-row">
+            <i class="aui-input-addon  aui-iconfont aui-icon-lock"></i>
+            <input id="rePsd" type="password" class="aui-input" placeholder="请再次输入密码"/>
+        </div>
+    </div>
+</div>
+<!-- 注册按钮 -->
+<div id="registerBtn" class="aui-btn aui-btn-success aui-btn-block registerAddMargin">注册</div>
+
+<p>注册即代表你同意<a class="aui-text-success" href="#" title="用户协议">用户协议</a></p>
+
+<script src="../script/jquery-2.1.4.min.js"></script>
+<!-- 注册功能 -->
+<script>
+    // 注册
+    $("#registerBtn").click(function(event) {
+        /* Act on the event */
+        var name=$("#userName").val();
+        var Email=$("#Email").val();
+        var psd=$("#psd").val();
+        var rePsd=$("#rePsd").val();
+        $.ajax({
+            type:"POST",
+            url:"http://cloudshadow.zhangguolu.xin/user/signup.php",
+            data:{name:name,password:psd,password2:rePsd,email:Email},
+            //返回数据的格式
+            datatype: "json",
+            //成功返回之后调用的函数             
+            success:function(data){
+                var data = eval("("+data+")");//转换为json对象 
+                if (data.status=="1") {
+//                  localStorage.setItem("userName",name);
+                    api.closeWin();
+//                  openWin('index');
+                }  
+                else{
+                    alert(data.errorinfo);
+                }       
+            }
+        });
+         //over
+     }); 
+ </script>
+ <script>
+    function openWin(name){
+        var delay = 0;
+        if(api.systemType != 'ios'){
+            delay = 0;
+        }
+        api.openWin({
+            name: ''+name+'',
+            url: ''+name+'.html',
+            bounces:false,
+            delay: delay,
+            slidBackEnabled:true,
+            vScrollBarEnabled:false
+        });
+    }
+</script>
+</body>
+</html>

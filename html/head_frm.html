@@ -1,0 +1,179 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+		<title>头像修改</title>
+		<link rel="stylesheet" href="../css/aui.css">
+		<link rel="stylesheet" href="../css/base.css">
+		<link rel="stylesheet" href="../css/manage.css">
+		<script src="../script/jquery-2.1.4.min.js"></script>
+	</head>
+	<body style="background-color:#808080">
+		<!-- 顶部导航 -->
+		<header id="header" class="aui-bar aui-bar-nav aui-bar-success">
+			<a onclick="api.closeWin()" class="aui-pull-left"> <span class="aui-iconfont aui-icon-left"></span>返回 </a>
+			<a class="aui-pull-right"> <span class="aui-iconfont" onclick="commit()">确定</span> </a>
+		</header>
+		<script>
+			var imageClip = {};
+			var img = {};
+			apiready = function() {
+				imageClip = api.require('imageClip');
+				img = api.require('UIMediaScanner');
+				chooseImg();
+			}
+			//提交信息
+			var commit = function() {
+				imageClip.save(function(ret, err) {
+					if (ret) {
+						api.showProgress({
+	                        style: 'default',
+	                        animationType: 'fade',
+	                        title: '更新中...',
+	                        text: '',
+	                        modal: true
+	                    });
+						var uid = localStorage.getItem("userId");
+						var path=ret.savePath;
+//						console.log(uid + ":" + ret.savePath);
+						// 上传图片
+						// url：上传的url地址
+						// data：上传的文件
+						// callback：上传成功返回地址
+						api.ajax({
+							url : 'http://cloudshadow.zhangguolu.xin/user/upload_icon.php',
+							method : 'post',
+							data : {
+								values : {
+									id : uid
+								},
+								files : {
+									file : path
+								}
+							}
+						}, function(ret, err) {
+							if (ret) {
+//								console.log(ret.status);
+								if(ret.status=="1"){
+//									alert("头像更新成功");
+									localStorage.setItem("userProfile",path);
+									api.sendEvent({ name: "profileManage"});
+									api.closeWin();
+								}
+								else{
+									alert("头像更新失败，请重试");	
+								}
+							} else {
+								api.alert({
+									msg : JSON.stringify(err)
+								});
+							}
+						});
+					}
+				});
+			}
+			var cup = function(src) {
+				var rectRcg = api.frameWidth * 0.8;
+				imageClip.open({
+					path : src,
+					x : 0,
+					y : 70,
+					clipRect : {
+						x : (api.frameWidth / 2) - (rectRcg / 2),
+						y : rectRcg / 2,
+						w : rectRcg,
+						h : rectRcg,
+						fixation : true
+					}
+				}, function(ret, err) {
+					//alert("ret = " + JSON.stringify(ret) + "err = " + JSON.stringify(err))
+				});
+			}
+			var chooseImg = function() {
+				api.toast({
+					msg : '加载相册信息',
+					duration : 2000,
+					location : 'middle'
+				});
+				img.open({
+					type : 'picture',
+					column : 4,
+					classify : true,
+					max : 1,
+					sort : {
+						key : 'time',
+						order : 'desc'
+					},
+					texts : {
+						stateText : '已选择*项',
+						cancelText : '取消',
+						finishText : '完成'
+					},
+					styles : {
+						bg : '#fff',
+						mark : {
+							icon : '',
+							position : 'top_right',
+							size : 20
+						},
+						nav : {
+							bg : '#eee',
+							stateColor : '#000',
+							stateSize : 12,
+							cancelBg : 'rgba(0,0,0,0)',
+							cancelColor : '#000',
+							cancelSize : 12,
+							finishBg : 'rgba(0,0,0,0)',
+							finishColor : '#000',
+							finishSize : 12
+						}
+					}
+				}, function(ret, err) {
+					if (ret.list) {
+						if (ret.list.length > 0) {
+							cup(ret.list[0].path);
+						} else {
+							alert("请重新选择图片");
+							api.openWin({
+								name : 'countManage',
+								url : 'countManage.html',
+								bounces:'false'
+							});
+						}
+						return;
+					}
+					closeWin("account-head");
+				});
+			}
+			var conmit = function() {
+				imageClip.save(function(ret, err) {
+					if (ret) {
+						api.showProgress({
+							style : 'default',
+							animationType : 'fade',
+							title : '更新中...',
+							text : '',
+							modal : true
+						});
+						console.log("更新头像。。。。。");
+						//                  post(dburl.info.savehead_members, { files: { path: [ret.savePath] } }, function (r) {
+						//                      if (r.S) {
+						//                          api.sendEvent({ name: "msgmanage", extra: ret.savePath });
+						//                          closeWin("account-head");
+						//                      } else {
+						//                          alert("头像更新错误,请稍后再试");
+						//                      }
+						//
+						//                  });
+					} else {
+						api.alert({
+							msg : err.msg
+						});
+					}
+				});
+			}
+		</script>
+	</body>
+</html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0">
+		<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+		<title>添加朋友圈</title>
+		<link rel="stylesheet" type="text/css" href="../css/aui.css">
+		<link rel="stylesheet" href="../css/base.css">
+		<link rel="stylesheet" href="../css/locate.css">
+	</head>
+	<body>
+		<!-- 顶部导航 -->
+		<header id="header" class="aui-bar aui-bar-nav aui-bar-success">
+			<a class="aui-btn aui-text-danger aui-btn-success aui-pull-left active" onclick="closeWin()">取消</a>
+			<a id="sendBtn" class="aui-btn aui-btn-success aui-pull-right active">发送</a>
+		</header>
+		<div class="aui-content addMargin">
+			<textarea id="ptext" rows="5" placeholder="  这一刻的想法..."></textarea>
+			<div id="imgBox" class="imgBox clearfix">
+				<div  id="cameraBtn" class="addBtn">
+					<img src="../image/add.png" alt="">
+				</div>
+			</div>
+			<div class="locate aui-bar aui-bar-nav aui-bar-success">
+				<a href="locate.html" class="aui-btn aui-btn-success aui-pull-left"> <span class="aui-iconfont aui-icon-location"></span> <span id="showAddress">请选择地址</span> </a>
+				<a class="aui-pull-right"></a>
+			</div>
+		</div>
+		<!-- 相机点出 -->
+		<div id="cameraZone" class="aui-content">
+			<ul class="aui-list-view">
+				<li id="takePicture" class="aui-list-view-cell">
+					拍照
+				</li>
+				<li id="choosePicture" class="aui-list-view-cell">
+					从手机相册选择
+				</li>
+			</ul>
+			<div id="cancelBtn" class="aui-btn aui-btn-block aui-btn-success">
+				取消
+			</div>
+		</div>
+		<div id="mask"></div>
+		<!-- 相机点出 -->
+		<script src="../script/jquery-2.1.4.min.js"></script>
+		<script src="../script/showAddPicture.js"></script>
+		<script type="text/javascript">
+			// 获取当前位置
+			apiready = function() {
+				// 引入过滤压缩模块
+				imageFilter = api.require("imageFilter");
+				uiMediaScanner = api.require('UIMediaScanner');
+				photoBrowser = api.require('photoBrowser');
+				cameraTool = api.require('cameraTool');
+				bMap = api.require('bMap');
+				// 判断是否是IOS系统
+				isIOS = api.systemType == "ios" ? true : false;
+				
+				//				获取位置
+				bMap.getLocation({
+					accuracy : '10m',
+					autoStop : true,
+					filter : 1
+				}, function(ret, err) {
+					if (ret.status) {
+//						console.log(JSON.stringify(ret));
+						//						存储地理位置用于上传
+						localStorage.setItem("lon", ret.lon);
+						localStorage.setItem("lat", ret.lat);
+						bMap.getNameFromCoords({
+							lon : ret.lon,
+							lat : ret.lat
+						}, function(ret, err) {
+							if (ret.status) {
+								document.getElementById("showAddress").innerHTML = ret.address;
+							}
+						});
+					} else {
+						api.alert({
+							msg : JSON.stringify(err) + JSON.stringify(ret)
+						});
+					}
+				});
+			}
+			// 生成guid,主要用于生成随机文件名
+			function NewGuid() {
+				function S4() {
+					return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+				}
+
+				return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
+			}
+
+			// 获取当前的时间，拼接成2015-11-09这样的格式，主要用于对图片进行时间分类
+			function getNowFormatDate() {
+				var date = new Date();
+				var seperator1 = "-";
+				var year = date.getFullYear();
+				var month = date.getMonth() + 1;
+				var strDate = date.getDate();
+				if (month >= 1 && month <= 9) {
+					month = "0" + month;
+				}
+				if (strDate >= 0 && strDate <= 9) {
+					strDate = "0" + strDate;
+				}
+				var currentdate = year + seperator1 + month + seperator1 + strDate
+				return currentdate;
+			}
+
+			// 获取文件拓展名
+			function getExt(fileName) {
+				return fileName.substring(fileName.lastIndexOf('.') + 1);
+			}
+
+			// 图片压缩
+			// imgsrc：源图片的路径
+			// quality：图片压缩质量，一般建议0.5
+			// scale：图片压缩比例，也是建议0.5
+			// ext：源图片拓展名
+			// callback：转换成功之后回调函数
+			function imgCompress(imgsrc, quality, scale, ext, callback) {
+				// 压缩文件的保存目录
+				var savePath = api.cacheDir + "/" + getNowFormatDate() + "/";
+				// 压缩文件生成的随机文件名称
+				var savename = NewGuid() + "." + ext;
+				imageFilter.compress({
+					img : imgsrc,
+					quality : quality,
+					scale : quality,
+					save : {
+						album : false,
+						imgPath : savePath,
+						imgName : savename
+					}
+				}, function(ret, err) {
+					if (ret) {
+//						console.log(JSON.stringify(ret));
+//						console.log(savePath);
+//						console.log(savename);
+						callback(savePath + savename);
+					} else {
+						alert(JSON.stringify(err));
+					}
+				});
+			}
+
+			var browerImgs = [];
+			// 打开图片浏览
+			// imgs：需要预览的图片集合
+			function openImageBrowser(imgs) {
+				photoBrowser.open({
+					images : imgs,
+					showList : false,
+					activeIndex : 0,
+					bgColor : '#000'
+				}, function(ret, err) {
+					if (ret) {
+						console.log(ret.eventType);
+						if (ret.eventType == "click") {
+							photoBrowser.close();
+						}
+					} else {
+						alert(JSON.stringify(err));
+					}
+				});
+			}
+
+			//			删除图片功能
+			function deleteImg() {
+				api.confirm({
+					title : '删除图片？',
+					msg : '是否重新选择图片?',
+					buttons : ['确定', '取消']
+				}, function(ret, err) {
+					if (ret.buttonIndex == 1) {//选择确定
+						$("#imgBox .picture").css("display","none");
+						$("#cameraBtn").css("display", "inline-block");
+					} else {//选择取消
+					}
+				});
+			}
+			// 拍照
+			document.getElementById("takePicture").onclick = function() {
+				cameraTool.openCamera(function(ret, err) {
+					// 拍照返回的本地路径
+					var returnUrl = ret.imgPath;
+					// 图片压缩
+					imgCompress(returnUrl, 0.5, 0.5, getExt(returnUrl), function(compressImg) {
+						//						var showImgHtml = '<li class="aui-list-view-cell aui-img aui-col-xs-4"><img class="aui-img-object" src="' + compressImg + '" style="width:' + normalW + 'px;height:' + normalW + 'px;"></li>';
+						// 追加图片
+						//						$("#addpic").before(showImgHtml);
+						var showImgHtml = '<div class="picture"><img id="image" src="' + compressImg + '" ><i onclick="deleteImg()" id="deleteBtn" class="aui-iconfont aui-icon-roundclosefill aui-text-danger"></i></div>';
+						// 追加图片
+						$("#cameraBtn").before(showImgHtml);
+						//只上传一张图片
+						$("#cameraBtn").css("display", "none");
+						localStorage.removeItem("sendImg");
+						localStorage.setItem("sendImg", compressImg);
+					});
+					cameraAddZone.style.display = "none";
+					mask.style.display = "none";
+					console.log($("#imgBox"));
+					// 为图片添加点击预览功能,排除添加按钮
+					$("#image").click(function() {
+						console.log("预览");
+						// 定义一个数组，存储需要预览的图片
+						$("#imgBox .picture img").each(function() {
+							browerImgs.push($(this).find("img").attr("src"));
+						});
+						// 调用图片预览函数
+						openImageBrowser(browerImgs);
+					});
+					cameraAddZone.style.display = "none";
+					mask.style.display = "none";
+				});
+			}
+			// 从手机相册选择
+			document.getElementById("choosePicture").onclick = function() {
+				uiMediaScanner.open({
+					type : 'picture',
+					column : 4,
+					classify : false, //不显示图片分类
+					max : 1,
+					sort : {
+						key : 'time',
+						order : 'desc'
+					},
+					texts : {
+						stateText : '已选择*项',
+						cancelText : '取消',
+						finishText : '完成'
+					},
+					styles : {
+						bg : '#fff',
+						mark : {
+							icon : '',
+							position : 'bottom_left',
+							size : 20
+						},
+						nav : {
+							bg : '#eee',
+							stateColor : '#000',
+							stateSize : 18,
+							cancelBg : 'rgba(0,0,0,0)',
+							cancelColor : '#000',
+							cancelSize : 18,
+							finishBg : 'rgba(0,0,0,0)',
+							finishColor : '#000',
+							finishSize : 18
+						}
+					},
+					scrollToBottom : {
+						intervalTime : 0,
+						anim : true
+					},
+					exchange : true,
+					rotation : false//禁止横屏
+				}, function(ret, err) {
+					if (ret) {
+						for (var i = 0; i < ret.list.length; i++) {
+							var selectImg = ret.list[i];
+							// 获取图片的路径
+							var selectimgPath = selectImg.path;
+							console.log(selectimgPath);
+							var selectimgThumbPath = selectImg.thumbPath;
+							// 图片压缩
+							imgCompress(selectimgPath, 0.5, 0.5, getExt(selectimgPath), function(compressImg) {
+								//						var showImgHtml = '<li class="aui-list-view-cell aui-img aui-col-xs-4"><img class="aui-img-object" src="' + compressImg + '" style="width:' + normalW + 'px;height:' + normalW + 'px;"></li>';
+								// 追加图片
+								//						$("#addpic").before(showImgHtml);
+								var showImgHtml = '<div class="picture"><img id="image" onclick="browerImage()" src="' + compressImg + '" ><i onclick="deleteImg()" id="deleteBtn" class="aui-iconfont aui-icon-roundclosefill aui-text-danger"></i></div>';
+								// 追加图片 
+								$("#cameraBtn").before(showImgHtml);
+								//只上传一张图片
+								$("#cameraBtn").css("display", "none");
+								localStorage.removeItem("sendImg");
+								localStorage.setItem("sendImg", compressImg);
+							});
+							cameraAddZone.style.display = "none";
+							mask.style.display = "none";
+							// console.log($("#imgBox"));
+							// 为图片添加点击预览功能,排除添加按钮
+//							alert($("#image"));
+						}
+					} else {
+						alert(JSON.stringify(err));
+					}
+				});
+			}
+			function browerImage(){
+				console.log("dfg");
+								browerImgs.push(localStorage.getItem("sendImg"));
+								// 定义一个数组，存储需要预览的图片
+//								$("#imgBox .picture").each(function() {
+//									browerImgs.push($(this).find("img").attr("src"));
+//								});
+								// 调用图片预览函数
+								openImageBrowser(browerImgs);
+			}
+			//上传
+			var uid = localStorage.getItem("userId");
+			document.getElementById("sendBtn").onclick = function() {
+				var lon = localStorage.getItem("lon");
+				var lat = localStorage.getItem("lat");
+				var ptext = document.getElementById('ptext').value;
+				var sendImg = localStorage.getItem("sendImg");
+//				console.log(lon+"JJJJJJJJJJJJJJ"+latf);
+				
+				if (ptext == "" || sendImg == null) {
+					if (ptext == "") {
+						alert("请输入您想发表的内容");
+					} else {
+						alert("请至少选择一张图片");
+					}
+				} else {
+					api.showProgress({
+						style : 'default',
+						animationType : 'fade',
+						title : '加载...',
+						text : '',
+						modal : false
+					});
+					//					console.log(uid+":"+ptext+":"+lon+":"+lat+":"+sendImg);
+					// 上传图片
+					// url：上传的url地址
+					// data：上传的文件
+					// callback：上传成功返回地址
+//					console.log(uid+":"+ptext+":"+lon+":"+lat);
+					
+					api.ajax({
+						url : 'http://cloudshadow.zhangguolu.xin/pic/post_img.php',
+						method : 'post',
+						data : {
+							values : {
+								uid : uid,
+								ptext : ptext,
+								plongitude : lon,
+								platitude : lat
+							},
+							files : {
+								file : sendImg
+							}
+						}
+					}, function(ret, err) {
+					
+						if (ret) {
+							console.log(JSON.stringify(ret));
+							//								console.log(ret.status);
+							if (ret.status == "1") {
+								api.hideProgress();
+								api.sendEvent({
+									name : "newPost"
+								});
+								api.closeWin();
+							} else {
+								alert("失败");
+							}
+						} else {
+							api.alert({
+								msg : JSON.stringify(err)
+							});
+						}
+					});
+				}
+			};
+			function closeWin() {
+				api.closeWin();
+			}
+		</script>
+	</body>
+</html>

@@ -1,0 +1,79 @@
+*{
+	margin: 0;
+	padding: 0;
+}
+#header{
+	padding-top: 25px;
+	position: fixed;
+	top: 0;
+}
+body{
+	font-family:Arial,"微软雅黑","黑体";
+	background-color: #eee;
+	display: inline-block;
+	font-size:14px;
+	color:#575757;
+}
+.aui-bar{
+	font-size:16px;
+}
+h4{
+	font-size:15px;
+}
+p{
+	color: #575757;
+}
+time{
+	color:#888;
+	font-size:12px;
+}
+img{
+	width: 100%;
+	height: auto;
+}
+
+.aui-input-row .aui-input{
+	padding-left: 2px;
+}
+.aui-btn{
+	padding: 10.5px 0;
+}
+.clearfix:after{
+	content: "";
+	display: block;
+	clear: both;
+}
+.listTop{
+	margin-top: 5%;
+}
+.addMargin{
+	margin-top: 70px !important;
+}
+.bottomMargin{
+	margin-bottom:50px;
+}
+.whiteBg{
+	background-color:#FFF;
+}
+.color888{
+	color:#888;
+}
+.color575757{
+	color:#575757;
+}
+.aui-bar-success {
+    background-color: #336ee5;
+}
+.aui-btn-success{
+	background-color: #336ee5;
+	border:1px solid #336EE5;
+}
+.aui-text-success{
+	color:#336EE5 !important;
+}
+.aui-btn-success.aui-btn-outlined{
+	color:#336EE5 !important;
+}
+.aui-bg-success{
+	background-color:#336EE5 !important;
+}
